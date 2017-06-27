@@ -1,4 +1,5 @@
 from flask import Blueprint
+from flask import render_template
 main = Blueprint('main', __name__)
 
 import json
@@ -9,6 +10,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from flask import Flask, request
+
+@main.route('/')
+def index():
+    return render_template('index.html')
 
 @main.route("/<int:user_id>/ratings/top/<int:count>", methods=["GET"])
 def top_reco(user_id, count):

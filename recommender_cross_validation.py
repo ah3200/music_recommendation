@@ -11,7 +11,7 @@ import math
 sc = SparkContext()
 
 # Load Train file
-taste_file = os.path.join('s3://music-recommendation','taste_profile.csv')
+taste_file = os.path.join('s3://music-recommendation','subset_train_taste_profile.csv')
 taste_raw_data = sc.textFile(taste_file)
 taste_raw_data_header = taste_raw_data.take(1)[0]
 # Remove first row as header, split each row into token

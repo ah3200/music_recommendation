@@ -1,3 +1,5 @@
+# Server engine
+
 import time, sys, cherrypy, os
 from paste.translogger import TransLogger 
 from app import create_app
@@ -36,6 +38,3 @@ if __name__ == "__main__":
 
 	# start web server
 	run_server(app)
-
-	#~/spark-1.3.1-bin-hadoop2.6/bin/spark-submit --master spark://169.254.206.2:7077 --total-executor-cores 14 --executor-memory 6g server.py
-

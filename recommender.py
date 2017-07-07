@@ -1,3 +1,9 @@
+# Recommencation Engine
+# Initialize:
+# - load user's taste file
+# - load song metadata
+# - load saved model
+
 import os
 from pyspark.mllib.recommendation import ALS
 from pyspark.mllib.recommendation import MatrixFactorizationModel
@@ -61,15 +67,6 @@ class RecommendationEngine:
         self.__train_model()
         
         return ratings
-
-#    def get_ratings_for_movie_ids(self, user_id, movie_ids):
-#        """Given a user_id and a list of movie_ids, predict ratings for them 
-#        """
-#        requested_movies_RDD = self.sc.parallelize(movie_ids).map(lambda x: (user_id, x))
-#        # Get predicted ratings
-#        ratings = self.__predict_ratings(requested_movies_RDD).collect()
-#
-#        return ratings
     
     def get_top_n_reco(self, user_id, n_songs):
         """Recommends up to n_songs to user_id
@@ -107,7 +104,7 @@ class RecommendationEngine:
         # Pre-calculate song count
         self.__count_and_average_ratings()
 
-        # Load model
+        # Load saved model
         self.model = MatrixFactorizationModel.load(sc, "model_full")
         logger.info("Recommendation Engine Model is Loaded Successfully ... ")
 
@@ -126,6 +123,6 @@ class RecommendationEngine:
 #    #dataset_path = os.path.join('datasets', 'ml-latest')
 #    recommendation_engine = RecommendationEngine(sc)
 
-# To run spark: 
+# To run spark on local environment: 
 # 1. unset PYSPARK_DRIVER_PYTHON
 # 2. ~/spark-2.1.0-bin-hadoop2.7/bin/spark-submit --master local[2] --total-executor-cores 14 --executor-memory 4g server.py

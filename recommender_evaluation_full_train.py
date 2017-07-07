@@ -11,7 +11,7 @@ import math
 sc = SparkContext()
 
 # Load Train file
-taste_file = os.path.join('s3://music-recommendation','taste_profile.csv')
+taste_file = os.path.join('s3://music-recommendation','medium_set_taste_profile.csv')
 taste_raw_data = sc.textFile(taste_file)
 taste_raw_data_header = taste_raw_data.take(1)[0]
 # Remove first row as header, split each row into token
@@ -40,8 +40,10 @@ iteration = 10
 #iterations = [10]
 k = 500
 
-model = ALS.trainImplicit(taste_data, rank, iterations=numIter, lambda_=regularization_param)
+model = ALS.trainImplicit(taste_data, rank, iterations=iteration, lambda_=regularization_parameter)
 print "Model built"
+model.save(sc, "s3://music-recommendation/model_full")
+print "Model saved"
 userRecommended = model.recommendProductsForUsers(k)
 user_reco = userRecommended.map(lambda x: (x[0], [r.product for r in x[1]]))
 
@@ -52,8 +54,8 @@ predictionAndLabels = user_reco.join(user_songs)
 test_predictionAndLabels = predictionAndLabels.map(lambda x: x[1])
 
 metrics = RankingMetrics(test_predictionAndLabels)
-result_list.append((rank, regularization_param, numIter, metrics.meanAveragePrecision, metrics.precisionAt(k), metrics.ndcgAt(k)))
-
+result_list.append((metrics.meanAveragePrecision, metrics.precisionAt(k), metrics.ndcgAt(k)))
+print result_list
 #2nd Iteration
 # Load Test file
 test_file = os.path.join('s3://music-recommendation','subset_train_taste_profile.csv')
@@ -63,6 +65,9 @@ test_raw_data_header = test_raw_data.take(1)[0]
 test_data = test_raw_data.filter(lambda line: line!=test_raw_data_header)\
             .map(lambda line: line.split(",")).map(lambda tokens: (int(tokens[0]),int(tokens[1]),int(tokens[2]))).cache()
 
+
+userRecommended = model.recommendProductsForUsers(k)
+user_reco = userRecommended.map(lambda x: (x[0], [r.product for r in x[1]]))
 # Labels data
 user_songs = test_data.map(lambda x: (x[0], x[1])).groupByKey().mapValues(list)
 
@@ -70,13 +75,13 @@ predictionAndLabels = user_reco.join(user_songs)
 test_predictionAndLabels = predictionAndLabels.map(lambda x: x[1])
 
 metrics = RankingMetrics(test_predictionAndLabels)
-result_list.append((rank, regularization_param, numIter, metrics.meanAveragePrecision, metrics.precisionAt(k), metrics.ndcgAt(k)))
+result_list.append((metrics.meanAveragePrecision, metrics.precisionAt(k), metrics.ndcgAt(k)))
 
-with open('./cross_val_result.csv', "w") as output:
+print result_list
+
+with open('./evaluation_result.csv', "w") as output:
     writer = csv.writer(output, lineterminator='\n')
     writer.writerows(result_list)
-
-model.save(sc, "model2")
 
 #with open('s3://music-recommendation/cross_val_result.csv', "w") as output:
 #    writer = csv.writer(output, lineterminator='\n')
